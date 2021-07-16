@@ -126,6 +126,7 @@ class GATE(torch.nn.Module):
         # if the vectors all are '-inf', softmax will generate 'nan', so replace with 0
         #T.FloatTensor([0]) is tensor([ 0.]) -infに変えたところを０に戻す
         score = torch.where(score != score, T.FloatTensor([0]), score)
+        #gated_neighbor_embeddingは恐らくz-n-i
         gated_neighbor_embedding = torch.bmm(score, gated_neighbor_embedding)
         gated_neighbor_embedding = torch.squeeze(gated_neighbor_embedding, 1)
 
