@@ -46,6 +46,7 @@ class GATE(torch.nn.Module):
                 embedding_dim=self.H,
                 padding_idx=num_items  # the last item index is the padded index
             )
+            #重みを固定している
             self.item_gated_embedding.weight.requires_grad = False
 
             self.word_embedding = torch.nn.Embedding(
@@ -68,7 +69,7 @@ class GATE(torch.nn.Module):
 
         # G = sigmoid(gate_matrix1 \dot item_embedding + gate_matrix2 \dot item_context_embedding + bias)
         self.gate_matrix1 = Variable(torch.zeros(self.H, self.H).type(T.FloatTensor), requires_grad=True)
-        print('H',self.H)
+        #self.H = H[1] = 50(default)
         # print('gate_matrix1_size',self.gate_matrix1.size())
         #gate_matrix1_size torch.Size([50, 50])
         self.gate_matrix2 = Variable(torch.zeros(self.H, self.H).type(T.FloatTensor), requires_grad=True)
