@@ -139,6 +139,7 @@ class GATE(torch.nn.Module):
         z_3_neighbor = F.tanh(self.linear3(gated_neighbor_embedding))
         # z_3_neighbor = F.dropout(z_3_neighbor, self.drop_rate)
 
+        #y_pred is 予測値
         y_pred = F.sigmoid(self.linear4(z_3) + z_3_neighbor.mm(self.linear4.weight.t()))
 
         return y_pred
