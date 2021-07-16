@@ -133,6 +133,7 @@ class GATE(torch.nn.Module):
         # gated_embedding = F.dropout(gated_embedding, self.drop_rate)
         # gated_neighbor_embedding = F.dropout(gated_neighbor_embedding, self.drop_rate)
 
+        #以下は恐らく(9)式を表している
         z_3 = F.tanh(self.linear3(gated_embedding))
         # z_3 = F.dropout(z_3, self.drop_rate)
         z_3_neighbor = F.tanh(self.linear3(gated_neighbor_embedding))
