@@ -101,6 +101,8 @@ class CDs(DataSet):
         self.item_mapping = None
 
     def generate_dataset(self, seed=0):
+        #UnpicklingError: the STRING opcode argument must be quoted　と怒られた
+        #CRLFをLFに変えたら通ったぽい
         user_records = self.load_pickle(self.dir_path + self.user_record_file)
         user_mapping = self.load_pickle(self.dir_path + self.user_mapping_file)
         item_mapping = self.load_pickle(self.dir_path + self.item_mapping_file)

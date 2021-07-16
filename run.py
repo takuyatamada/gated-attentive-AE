@@ -201,7 +201,8 @@ def train_model(train_matrix, item_matrix, item_neighbor_matrix, word_seq, test_
             batch_word_seq = Variable(torch.from_numpy(batch_word_seq).type(T.LongTensor), requires_grad=False)
             batch_neighbor_index = Variable(torch.from_numpy(batch_neighbor_index).type(T.LongTensor),requires_grad=False)
             batch_x = Variable(torch.from_numpy(batch_x.astype(np.float32)).type(dtype), requires_grad=False)
-            batch_x_weight = Variable(torch.from_numpy(batch_x_weight).type(dtype), requires_grad=False)
+            # batch_x_weight = Variable(torch.from_numpy(batch_x_weight).type(dtype), requires_grad=False)
+            batch_x_weight = Variable(torch.from_numpy(batch_x_weight.astype(np.float32)).type(dtype), requires_grad=False)
 
             # Forward pass: Compute predicted y by passing x to the model
             rating_pred = GAT(batch_item_index, batch_x, batch_word_seq, batch_neighbor_index)

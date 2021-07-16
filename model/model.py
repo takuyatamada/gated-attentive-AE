@@ -68,6 +68,9 @@ class GATE(torch.nn.Module):
 
         # G = sigmoid(gate_matrix1 \dot item_embedding + gate_matrix2 \dot item_context_embedding + bias)
         self.gate_matrix1 = Variable(torch.zeros(self.H, self.H).type(T.FloatTensor), requires_grad=True)
+        print('H',self.H)
+        # print('gate_matrix1_size',self.gate_matrix1.size())
+        #gate_matrix1_size torch.Size([50, 50])
         self.gate_matrix2 = Variable(torch.zeros(self.H, self.H).type(T.FloatTensor), requires_grad=True)
         self.gate_matrix1 = torch.nn.init.xavier_uniform_(self.gate_matrix1)
         self.gate_matrix2 = torch.nn.init.xavier_uniform_(self.gate_matrix2)
@@ -82,23 +85,45 @@ class GATE(torch.nn.Module):
         z_content = self.get_content_z(batch_word_seq)
 
         gate = F.sigmoid(z_rating.mm(self.gate_matrix1) + z_content.mm(self.gate_matrix2) + self.gate_bias)
+        
+        #gated_embedding = z-g-i
         gated_embedding = gate * z_rating + (1 - gate) * z_content
 
         # save the embedding for direct lookup
         self.item_gated_embedding.weight[batch_item_index] = gated_embedding.data
 
         gated_neighbor_embedding = self.item_gated_embedding(batch_neighbor_index)
+        print('gated_neighbor_embedding size',gated_neighbor_embedding.size())
+        #gated_neighbor_embedding size torch.Size([1024, 75, 50])
 
         # aug_gated_embedding: [256, 1, 50]
+        print('befor aug_gated_embedding',gated_embedding.size())
+        #befor aug_gated_embedding torch.Size([1024, 50])
         aug_gated_embedding = torch.unsqueeze(gated_embedding, 1)
-        score = torch.matmul(aug_gated_embedding, torch.unsqueeze(self.neighbor_attention, 0))
-        # score: [256, 1, 480]
-        score = torch.bmm(score, gated_neighbor_embedding.permute(0, 2, 1))
+        print('after aug_gated_embedding',aug_gated_embedding.size())
+        #after aug_gated_embedding torch.Size([1024, 1, 50])
 
+        # print(torch.unsqueeze(self.neighbor_attention, 0).size())
+        #torch.unsqueeze(self.neighbor_attention, 0)のサイズはtorch.Size([1, 50, 50])
+        score = torch.matmul(aug_gated_embedding, torch.unsqueeze(self.neighbor_attention, 0))
+        # print('score_size',score.size())
+        #score_size torch.Size([1024, 1, 50])
+        # score: [256, 1, 480]
+        
+        score = torch.bmm(score, gated_neighbor_embedding.permute(0, 2, 1))
+        print('score_size',score.size())
+        #score_size torch.Size([1024, 1, 75])
+        
         # make the 0 in score, which will make a difference in softmax
+        #score is a-i
+        #scoreが０の時は負の無限大に置き換える
         score = torch.where(score == 0, T.FloatTensor([float('-inf')]), score)
         score = F.softmax(score, dim=2)
+        print('softmax_score',score.size())
+        #softmax_score torch.Size([1024, 1, 75])
+
         # if the vectors all are '-inf', softmax will generate 'nan', so replace with 0
+        #T.FloatTensor([0]) is tensor([ 0.]) -infに変えたところを０に戻す
         score = torch.where(score != score, T.FloatTensor([0]), score)
         gated_neighbor_embedding = torch.bmm(score, gated_neighbor_embedding)
         gated_neighbor_embedding = torch.squeeze(gated_neighbor_embedding, 1)
